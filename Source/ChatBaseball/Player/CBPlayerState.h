@@ -31,11 +31,20 @@ protected:
 	UPROPERTY(Replicated)
 	int32 MaxTryCnt;
 
+	FTimerHandle TurnTimerHandle;
+
+	UPROPERTY(Replicated)
+	int32 RemainTime;
+
+	int32 MaxTime;
+
 public:
 	int32 GetCurTryCnt() const;
 	int32 GetMaxTryCnt() const;
+	int32 GetRemainTime() const;
 
 public:
 	void IncreaseTryCnt();
+	void SetRemainTime();
 	
 };

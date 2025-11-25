@@ -4,14 +4,17 @@
 #include "Player/CBPlayerController.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 #include "Game/CBGameModeBase.h"
 #include "Player/CBPlayerState.h"
 #include "UI/ChatInput.h"
+#include "UI/GameStateBoard.h"
 
 
 ACBPlayerController::ACBPlayerController()
 {
+	bReplicates = true;
 }
 
 void ACBPlayerController::BeginPlay()
@@ -26,11 +29,47 @@ void ACBPlayerController::BeginPlay()
 	FInputModeUIOnly InputModeUIOnly;
 	SetInputMode(InputModeUIOnly);
 
-	if (IsValid(ChatInputWidgetClass) == false) return;
-	ChatInputWidgetInstance = CreateWidget<UChatInput>(this, ChatInputWidgetClass);
+	if (IsValid(GameStateBoardWidgetClass))
+	{
+		GameStateBoardWidgetInstance = CreateWidget<UGameStateBoard>(this, GameStateBoardWidgetClass);
 
-	if (IsValid(ChatInputWidgetInstance) == false) return;
-	ChatInputWidgetInstance->AddToViewport();
+		if (IsValid(GameStateBoardWidgetInstance) == false) return;
+		GameStateBoardWidgetInstance->AddToViewport();
+
+		GetWorld()->GetTimerManager().SetTimer(UpdateRemainTimeHandle, this, &ThisClass::UpdateGameeStateBoard, 1, true);
+	}
+	
+	if (IsValid(ChatInputWidgetClass))
+	{ 
+		ChatInputWidgetInstance = CreateWidget<UChatInput>(this, ChatInputWidgetClass);
+
+		if (IsValid(ChatInputWidgetInstance) == false) return;
+		ChatInputWidgetInstance->AddToViewport();
+	}
+}
+
+void ACBPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, GameStateString);
+}
+
+void ACBPlayerController::UpdateGameeStateBoard()
+{
+	ACBPlayerState* CBPlayerState = GetPlayerState<ACBPlayerState>();
+	if (IsValid(CBPlayerState) && IsValid(GameStateBoardWidgetInstance))
+	{
+		int32 RemainTime = CBPlayerState->GetRemainTime();
+		FString Value = (RemainTime == -1) ? ("Type the answer to start game!!!") : (FString::FromInt(RemainTime));
+
+		GameStateBoardWidgetInstance->SetTextBox_Timer(Value);
+	}
+
+	if (IsValid(GameStateBoardWidgetInstance))
+	{
+		GameStateBoardWidgetInstance->SetTextBox_GameState(GameStateString);
+	}
 }
 
 void ACBPlayerController::CommitInChatMsg(const FString& InChatMsg)

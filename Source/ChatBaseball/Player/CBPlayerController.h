@@ -7,7 +7,6 @@
 #include "CBPlayerController.generated.h"
 
 
-class UChatInput;
 /**
  * 
  */
@@ -20,18 +19,43 @@ public:
 	ACBPlayerController();
 
 	virtual void BeginPlay() override;
+	//virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+/// <summary>
+/// GameStateBoard Widget
+/// </summary>
+public:
+	UPROPERTY(Replicated)
+	FString GameStateString;
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UChatInput> ChatInputWidgetClass;
+	TSubclassOf<class UGameStateBoard> GameStateBoardWidgetClass;
 
 	UPROPERTY()
-	TObjectPtr<UChatInput> ChatInputWidgetInstance;
+	TObjectPtr<class UGameStateBoard> GameStateBoardWidgetInstance;
+
+	FTimerHandle UpdateRemainTimeHandle;
+
+protected:
+	void UpdateGameeStateBoard();
+
+
+/// <summary>
+/// ChatInput Widget
+/// </summary>
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UChatInput> ChatInputWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<class UChatInput> ChatInputWidgetInstance;
 
 public:
 	void CommitInChatMsg(const FString& InChatMsg);
 	void PrintInChatMsg(const FString& InChatMsg);
 
+public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_PrintChatMsg(const FString& InChatMsg);
 

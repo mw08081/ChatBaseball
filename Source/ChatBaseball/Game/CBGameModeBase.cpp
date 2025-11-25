@@ -22,6 +22,8 @@ void ACBGameModeBase::OnPostLogin(AController* NewPlayer)
 	{
 		AllPlayerControllers.Add(CBPlayerController);
 
+		CBPlayerController->GameStateString = "Connected to game server!!!";
+
 		ACBPlayerState* CBPlayerState = CBPlayerController->GetPlayerState<ACBPlayerState>();
 		if (IsValid(CBPlayerState))
 		{
