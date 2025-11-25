@@ -48,8 +48,6 @@ void ACBGameModeBase::PrintInChatMsg(ACBPlayerController* InChatController, cons
 	ACBPlayerState* CBPlayerState = InChatController->GetPlayerState<ACBPlayerState>();
 	CBPlayerState->IncreaseTryCnt();
 
-	UE_LOG(LogTemp, Warning, TEXT("%d / %d"), CBPlayerState->GetCurTryCnt(), CBPlayerState->GetMaxTryCnt());
-
 	// 세자리 숫자인가
 		// IncreaseTryCnt()
 		// 결과 판단

@@ -45,6 +45,6 @@ public:
 
 public:
 	void IncreaseTryCnt();
-	void SetRemainTime();
+	void StartTimer();
 	
 };

@@ -51,23 +51,27 @@ int32 ACBPlayerState::GetRemainTime() const
 void ACBPlayerState::IncreaseTryCnt()
 {
 	CurTryCnt++;
+	//UE_LOG(LogTemp, Warning, TEXT("%d / %d"), CurTryCnt, MaxTryCnt);
 
-	// 시작 시그널
-	if (CurTryCnt == 1)
-	{
-		SetRemainTime();
-		GetWorld()->GetTimerManager().SetTimer(TurnTimerHandle, this, &ThisClass::SetRemainTime, 1, true);
-	}
+	StartTimer();
 }
 
-void ACBPlayerState::SetRemainTime()
+// 타이머 재설정 작업중
+void ACBPlayerState::StartTimer()
 {
 	if (GetWorld()->GetTimerManager().IsTimerActive(TurnTimerHandle) == true)
 	{
 		RemainTime--;
+
+		if (RemainTime < 0)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(TurnTimerHandle);
+			IncreaseTryCnt();
+		}
 	}
 	else
 	{
 		RemainTime = MaxTime;
+		GetWorld()->GetTimerManager().SetTimer(TurnTimerHandle, this, &ThisClass::StartTimer, 1, true);
 	}
 }
