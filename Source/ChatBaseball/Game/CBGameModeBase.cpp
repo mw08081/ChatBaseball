@@ -12,6 +12,8 @@ void ACBGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	FinishedPlayerCount = 0;
+
 	GenerateRandomNumber();
 }
 
@@ -50,7 +52,11 @@ void ACBGameModeBase::PrintInChatMsg(ACBPlayerController* InChatController, cons
 			FString Result = JudgeInputString(InChatMsg);
 			InChatController->ClientRPC_PrintChatMsg(Result);
 
-			CBPlayerState->IncreaseTryCnt();
+			if (Result.LeftChop(2) != "3S")
+			{
+				CBPlayerState->IncreaseTryCnt();
+			}
+			JudgeGame(InChatController, Result);
 		}
 	}
 	else
@@ -114,4 +120,54 @@ FString ACBGameModeBase::JudgeInputString(const FString& InChatMsg)
 	}
 
 	return (S == 0 && B == 0) ? ("OUT") : (FString::Printf(TEXT("%dS%dB"), S, B));
+}
+
+void ACBGameModeBase::JudgeGame(ACBPlayerController* InChatController, const FString& Result)
+{
+	ACBPlayerState* CBPlayerState = InChatController->GetPlayerState<ACBPlayerState>();
+	if (IsValid(CBPlayerState) == false)
+	{
+		return;
+	}
+
+	if (Result.LeftChop(2) == "3S")
+	{
+		InChatController->GameStateString = "You correct the answer!!!";
+		ResetGame(CBPlayerState->PlayerName + TEXT(" has won the game!!!"));
+	}
+	else
+	{
+		int32 TryCnt = CBPlayerState->GetCurTryCnt();
+		int32 MaxCnt = CBPlayerState->GetMaxTryCnt();
+
+		if (TryCnt >= MaxCnt)
+		{
+		   InChatController->GameStateString = "You can't try anymore...Wait another player";
+		   CBPlayerState->ClearTurnTimer();
+
+		   FinishedPlayerCount++;
+		   if (FinishedPlayerCount == AllPlayerControllers.Num())
+		   {
+		      ResetGame("Draw");
+		   }
+		}
+	}
+}
+
+void ACBGameModeBase::ResetGame(const FString& GameStateString)
+{
+	FinishedPlayerCount = 0;
+	GenerateRandomNumber();
+
+	for (auto e : AllPlayerControllers)
+	{
+		ACBPlayerState* CBPlayerState = e->GetPlayerState<ACBPlayerState>();
+		if (IsValid(CBPlayerState))
+		{
+			CBPlayerState->SetRemainTime(-1);
+			CBPlayerState->SetCurTryCnt(0);
+
+			e->GameStateString = GameStateString;
+		}
+	}
 }

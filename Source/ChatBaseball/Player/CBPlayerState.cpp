@@ -4,8 +4,10 @@
 #include "Player/CBPlayerState.h"
 
 #include "Net/UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Player/CBPlayerController.h"
+#include "Game/CBGameModeBase.h"
 
 ACBPlayerState::ACBPlayerState()
 {
@@ -29,8 +31,17 @@ void ACBPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 
 	DOREPLIFETIME(ThisClass, PlayerName);
 	DOREPLIFETIME(ThisClass, CurTryCnt);
-	DOREPLIFETIME(ThisClass, MaxTryCnt);
 	DOREPLIFETIME(ThisClass, RemainTime);
+}
+
+void ACBPlayerState::SetCurTryCnt(int32 Value)
+{
+	this->CurTryCnt = Value;
+}
+
+void ACBPlayerState::SetRemainTime(int32 Value)
+{
+	this->RemainTime = Value;
 }
 
 int32 ACBPlayerState::GetCurTryCnt() const
@@ -51,9 +62,13 @@ int32 ACBPlayerState::GetRemainTime() const
 void ACBPlayerState::IncreaseTryCnt()
 {
 	CurTryCnt++;
-	//UE_LOG(LogTemp, Warning, TEXT("%d / %d"), CurTryCnt, MaxTryCnt);
+	UpdateGameStateString();
 
-	StartTimer();
+	ClearTurnTimer();
+	if (CurTryCnt < MaxTryCnt)
+	{
+		StartTimer();
+	}
 }
 
 // 타이머 재설정 작업중
@@ -65,13 +80,46 @@ void ACBPlayerState::StartTimer()
 
 		if (RemainTime < 0)
 		{
-			GetWorld()->GetTimerManager().ClearTimer(TurnTimerHandle);
 			IncreaseTryCnt();
+
+			// EditableTextBox의 commit으로 IncreaseTryCnt()가 호출된다면 JudgeGame()이 호출됨
+			// 타이머 초과로 인해 IncreaseTryCnt()가 호출된다면, JudgeGame()을 해줘야함(특히 마지막 시도일경우)
+			AGameModeBase* GameModeBase = GetWorld()->GetAuthGameMode<AGameModeBase>();
+			if (IsValid(GameModeBase))
+			{
+				ACBGameModeBase* CBGameModeBase = Cast<ACBGameModeBase>(GameModeBase);
+				if (IsValid(CBGameModeBase))
+				{
+					CBGameModeBase->JudgeGame(Cast<ACBPlayerController>(GetOwner()), "OUT");
+				}
+			}
 		}
 	}
 	else
 	{
 		RemainTime = MaxTime;
 		GetWorld()->GetTimerManager().SetTimer(TurnTimerHandle, this, &ThisClass::StartTimer, 1, true);
+	}
+}
+
+void ACBPlayerState::ClearTurnTimer()
+{
+	GetWorld()->GetTimerManager().ClearTimer(TurnTimerHandle);
+}
+
+void ACBPlayerState::UpdateGameStateString()
+{
+	ACBPlayerController* CBPlayerController = Cast<ACBPlayerController>(GetOwner());
+	if (IsValid(CBPlayerController))
+	{
+		if (CurTryCnt < MaxTryCnt)
+		{
+			CBPlayerController->GameStateString = FString::Printf(TEXT("Try count: %d / %d"), CurTryCnt, MaxTryCnt);
+		}
+		else
+		{
+			CBPlayerController->GameStateString = "You can't try anymore...";
+			ClearTurnTimer();
+		}
 	}
 }

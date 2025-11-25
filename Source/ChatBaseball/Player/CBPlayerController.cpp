@@ -92,15 +92,22 @@ void ACBPlayerController::ClientRPC_PrintChatMsg_Implementation(const FString& I
 
 void ACBPlayerController::ServerRPC_PrintChatMsg_Implementation(const FString& InChatMsg)
 {
-	AGameModeBase* GameMode = UGameplayStatics::GetGameMode(this);
-	if (IsValid(GameMode) == false) return;
+	AGameModeBase* GameModeBase = UGameplayStatics::GetGameMode(this);
+	if (IsValid(GameModeBase) == false) return;
 
-	ACBGameModeBase* CBGameMode = Cast<ACBGameModeBase>(GameMode);
+	ACBGameModeBase* CBGameMode = Cast<ACBGameModeBase>(GameModeBase);
 	if (IsValid(CBGameMode) == false) return;
 
 	ACBPlayerState* CBPlayerState = GetPlayerState<ACBPlayerState>();
 	if (IsValid(CBPlayerState) == false) return;
 
-	FString Cont = CBPlayerState->PlayerName + ": " + InChatMsg;
-	CBGameMode->PrintInChatMsg(this, Cont);
+	if (CBPlayerState->GetCurTryCnt() < CBPlayerState->GetMaxTryCnt())
+	{
+		FString Cont = CBPlayerState->PlayerName + ": " + InChatMsg;
+		CBGameMode->PrintInChatMsg(this, Cont);
+	}
+	else
+	{
+		return;
+	}
 }

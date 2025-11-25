@@ -28,7 +28,6 @@ protected:
 	UPROPERTY(Replicated)
 	int32 CurTryCnt;
 
-	UPROPERTY(Replicated)
 	int32 MaxTryCnt;
 
 	FTimerHandle TurnTimerHandle;
@@ -39,6 +38,9 @@ protected:
 	int32 MaxTime;
 
 public:
+	void SetCurTryCnt(int32 Value);
+	void SetRemainTime(int32 Value);
+
 	int32 GetCurTryCnt() const;
 	int32 GetMaxTryCnt() const;
 	int32 GetRemainTime() const;
@@ -46,5 +48,7 @@ public:
 public:
 	void IncreaseTryCnt();
 	void StartTimer();
+	void ClearTurnTimer();
+	void UpdateGameStateString();
 	
 };

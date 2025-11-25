@@ -23,6 +23,8 @@ protected:
 	TArray<ACBPlayerController*> AllPlayerControllers;
 	FString AnswerNumber;
 
+	int32 FinishedPlayerCount;
+
 public:
 	void PrintInChatMsg(ACBPlayerController* InChatController, const FString& InChatMsg);
 
@@ -31,4 +33,17 @@ protected:
 
 	bool CheckIsMsgForGame(const FString& InChatMsg);
 	FString JudgeInputString(const FString& InChatMsg);
+
+/// <summary>
+/// Manage Whole Game
+/// </summary>
+public:
+	/// <summary>
+	/// Can be called external function
+	/// </summary>
+	/// <param name="InChatController"></param>
+	/// <param name="Result"></param>
+	void JudgeGame(ACBPlayerController* InChatController, const FString& Result);
+protected:
+	void ResetGame(const FString& GameStateString);
 };
