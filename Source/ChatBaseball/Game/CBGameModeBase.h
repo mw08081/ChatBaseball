@@ -21,8 +21,14 @@ public:
 
 protected:
 	TArray<ACBPlayerController*> AllPlayerControllers;
+	FString AnswerNumber;
 
 public:
 	void PrintInChatMsg(ACBPlayerController* InChatController, const FString& InChatMsg);
 
+protected:
+	void GenerateRandomNumber();
+
+	bool CheckIsMsgForGame(const FString& InChatMsg);
+	FString JudgeInputString(const FString& InChatMsg);
 };

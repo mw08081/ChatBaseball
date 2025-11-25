@@ -11,6 +11,8 @@
 void ACBGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GenerateRandomNumber();
 }
 
 void ACBGameModeBase::OnPostLogin(AController* NewPlayer)
@@ -40,21 +42,76 @@ void ACBGameModeBase::OnPostLogin(AController* NewPlayer)
 
 void ACBGameModeBase::PrintInChatMsg(ACBPlayerController* InChatController, const FString& InChatMsg)
 {
-	for (auto e : AllPlayerControllers)
+	if (CheckIsMsgForGame(InChatMsg))
 	{
-		e->ClientRPC_PrintChatMsg(InChatMsg);
+		ACBPlayerState* CBPlayerState = InChatController->GetPlayerState<ACBPlayerState>();
+		if (IsValid(CBPlayerState))
+		{
+			FString Result = JudgeInputString(InChatMsg);
+			InChatController->ClientRPC_PrintChatMsg(Result);
+
+			CBPlayerState->IncreaseTryCnt();
+		}
+	}
+	else
+	{
+		for (auto e : AllPlayerControllers)
+		{
+			e->ClientRPC_PrintChatMsg(InChatMsg);
+		}
+	}
+}
+
+void ACBGameModeBase::GenerateRandomNumber()
+{
+	TSet<int32> RandomNumbers;
+	while (RandomNumbers.Num() < 3)
+	{
+		RandomNumbers.Add(FMath::RandHelper(10));
 	}
 
-	ACBPlayerState* CBPlayerState = InChatController->GetPlayerState<ACBPlayerState>();
-	CBPlayerState->IncreaseTryCnt();
+	AnswerNumber = "";
+	for (auto e : RandomNumbers)
+	{
+		AnswerNumber += FString::FromInt(e);
+	}
+	UE_LOG(LogTemp, Error, TEXT("Answer Number: %s"), *AnswerNumber);
+}
 
-	// 세자리 숫자인가
-		// IncreaseTryCnt()
-		// 결과 판단
-		
-		// 게임 판단
-		
-		
-	// 아니다
-		// 클라이언트RPC
+bool ACBGameModeBase::CheckIsMsgForGame(const FString& InChatMsg)
+{
+	FString Value = InChatMsg.Right(3);
+	for (auto e : Value)
+	{
+		if (!(e >= '0' && e <= '9'))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+FString ACBGameModeBase::JudgeInputString(const FString& InChatMsg)
+{
+	int32 S = 0, B = 0;
+	FString Value = InChatMsg.Right(3);
+
+	for (int i = 0; i < Value.Len(); i++)
+	{
+		FString TempString = FString::Printf(TEXT("%c"), Value[i]);
+		if (AnswerNumber.Contains(TempString))
+		{
+			if (AnswerNumber[i] == Value[i])
+			{
+				S++;
+			}
+			else
+			{
+				B++;
+			}
+		}
+	}
+
+	return (S == 0 && B == 0) ? ("OUT") : (FString::Printf(TEXT("%dS%dB"), S, B));
 }
