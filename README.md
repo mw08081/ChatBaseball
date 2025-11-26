@@ -1,4 +1,17 @@
 ## 멀티플레이 RPC 통신 찍먹: 숫자 야구
+
+### 구현결과
+- 특정 플레이어가 정답을 맞출경우  
+![multi_when_player2_hasWon](https://github.com/user-attachments/assets/a2ff20e3-39b6-4ecb-9625-90ee394b1620)  
+- 턴 타이머 초과시, 시도횟수 증가  
+![3](https://github.com/user-attachments/assets/4ba84061-2759-4e1b-9745-22a47c938e0c)  
+- 시도 횟수 초과시, 다른 플레이어의 게임 종료를 대기  
+![GIF 2025-11-26 오후 10-57-45](https://github.com/user-attachments/assets/8cbb3174-0f45-4636-a20e-f5b0c80e728a)  
+- 다른 플레이어의 게임 종료 대기 -> 게임 재시작  
+![2](https://github.com/user-attachments/assets/6a03dd7d-8769-4b10-9bcb-132f69bebfc4)  
+
+
+
 ### 주요 구현부
 - 각 플레이어별 턴 타이머 생성(도전과제)
   ```c++
